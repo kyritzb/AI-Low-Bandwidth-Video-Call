@@ -1,0 +1,80 @@
+{
+  "name": "image-processing",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@material-ui/core": "^4.11.3",
+    "@material-ui/icons": "^4.11.2",
+    "@testing-library/jest-dom": "^5.11.4",
+    "@testing-library/react": "^11.1.0",
+    "@testing-library/user-event": "^12.1.10",
+    "@types/dom-mediacapture-record": "^1.0.7",
+    "@types/jest": "^26.0.15",
+    "@types/node": "^12.0.0",
+    "@types/react": "^16.9.53",
+    "@types/react-dom": "^16.9.8",
+    "axios": "^0.21.1",
+    "classnames": "^2.2.6",
+    "dotenv": "^8.2.0",
+    "material-table": "^1.69.2",
+    "react": "^17.0.1",
+    "react-dom": "^17.0.1",
+    "react-media-recorder": "^1.4.0",
+    "react-minimal-pie-chart": "^8.1.0",
+    "react-plaid-link": "^3.0.0",
+    "react-redux": "^7.2.2",
+    "react-router": "^5.2.0",
+    "react-router-dom": "^5.2.0",
+    "react-scripts": "4.0.1",
+    "react-slidedown": "^2.4.5",
+    "react-table": "^7.6.3",
+    "react-thunk": "^1.0.0",
+    "react-tooltip": "^4.2.13",
+    "react-use": "^15.3.8",
+    "rect-scaler": "^1.0.0",
+    "redux": "^4.0.5",
+    "redux-thunk": "^2.3.0",
+    "riek": "^1.1.0",
+    "rxjs": "^6.6.3",
+    "socket.io-client": "^3.1.0",
+    "styled-components": "^5.2.1",
+    "typescript": "^4.0.3",
+    "uuid": "^8.3.2",
+    "web-vitals": "^0.2.4"
+  },
+  "scripts": {
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/react-router-dom": "^5.1.7",
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "@typescript-eslint/parser": "^4.12.0",
+    "eslint": "^7.17.0",
+    "eslint-config-prettier": "^7.1.0",
+    "eslint-plugin-prettier": "^3.3.1",
+    "eslint-plugin-react": "^7.22.0",
+    "prettier": "^2.2.1",
+    "redux-devtools-extension": "^2.13.8"
+  }
+}
