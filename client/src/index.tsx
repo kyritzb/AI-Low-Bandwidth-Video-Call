@@ -2,6 +2,7 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 //pages
 import Home from './views/Home/Home';
+import Call from './views/Call/Call';
 //react router
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 //redux
@@ -27,6 +28,7 @@ ReactDOM.render(
         <Router>
             <Switch>
                 <Route exact path="/" component={Home} />
+                <Route exact path="/call" component={Call} />
             </Switch>
         </Router>
     </Provider>,

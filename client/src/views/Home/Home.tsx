@@ -27,7 +27,6 @@ const Home: React.FC = () => {
                 <MainBody>
                     <MainTitle>Low-Bandwidth Video Calling</MainTitle>
                     <SubTitle>Interactive Demonstration</SubTitle>
-                    <p>By Bryan Kyritz, Andrew D’angelo, and Amein Almoughrabi</p>
                     <LoginLink to="/call">
                         <Button
                             variant="contained"
