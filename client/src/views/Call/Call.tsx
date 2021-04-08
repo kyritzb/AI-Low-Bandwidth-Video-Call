@@ -34,6 +34,8 @@ const Home: React.FC = () => {
     const BLUE = '#157AB3';
     const renderPointcloud = true;
 
+    let ctx;
+
     const model = facemesh.load({ maxFaces: 1 });
 
     function distance(a, b) {
@@ -67,6 +69,12 @@ const Home: React.FC = () => {
     async function detectFace() {
         console.log('running facial detection');
 
+        ctx = canvas.current.getContext('2d');
+
+        ctx.fillStyle = GREEN;
+        ctx.strokeStyle = GREEN;
+        ctx.lineWidth = 0.5;
+
         video.current.requestVideoFrameCallback(detectFaceInFrame);
     }
 
@@ -74,40 +82,22 @@ const Home: React.FC = () => {
         const predictions = await (await model).estimateFaces(video.current);
 
         //console.log(faces);
-        const ctx = canvas.current.getContext('2d');
 
-        ctx.fillStyle = GREEN;
-        ctx.strokeStyle = GREEN;
-        ctx.lineWidth = 0.5;
         ctx.drawImage(video.current, 0, 0, 250, 188);
 
         if (predictions.length > 0) {
             predictions.forEach((prediction) => {
                 const keypoints = prediction.scaledMesh;
 
-                console.log(keypoints);
-                if (keypoints == 468) {
-                    ctx.strokeStyle = GREEN;
-                    ctx.lineWidth = 0.5;
+                ctx.fillStyle = GREEN;
 
-                    for (let i = 0; i < TRIANGULATION.length / 3; i++) {
-                        const points = [TRIANGULATION[i * 3], TRIANGULATION[i * 3 + 1], TRIANGULATION[i * 3 + 2]].map(
-                            (index) => keypoints[index],
-                        );
+                for (let i = 0; i < NUM_KEYPOINTS; i++) {
+                    const x = keypoints[i][0];
+                    const y = keypoints[i][1];
 
-                        drawPath(ctx, points, true);
-                    }
-                } else {
-                    ctx.fillStyle = GREEN;
-
-                    for (let i = 0; i < NUM_KEYPOINTS; i++) {
-                        const x = keypoints[i][0];
-                        const y = keypoints[i][1];
-
-                        ctx.beginPath();
-                        ctx.arc(x, y, 1 /* radius */, 0, 2 * Math.PI);
-                        ctx.fill();
-                    }
+                    ctx.beginPath();
+                    ctx.arc(x, y, 1 /* radius */, 0, 2 * Math.PI);
+                    ctx.fill();
                 }
 
                 if (keypoints.length > NUM_KEYPOINTS) {
