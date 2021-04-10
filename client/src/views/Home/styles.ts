@@ -21,5 +21,13 @@ export const SubTitle = styled.h4`
     font-size: 1.75em;
     font-weight: 400;
     color: grey;
-    margin-bottom: 7%;
+    margin-bottom: 1%;
+`;
+
+export const By = styled.h6`
+    text-align: center;
+    font-size: 1.75em;
+    font-weight: 400;
+    color: grey;
+    margin-bottom: 5%;
 `;

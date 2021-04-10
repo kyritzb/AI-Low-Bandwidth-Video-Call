@@ -3,10 +3,10 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 //material-ui
 import { ThemeProvider, createMuiTheme, Button } from '@material-ui/core';
-import { green } from '@material-ui/core/colors';
+import { green, blue } from '@material-ui/core/colors';
 //styles
 import styled from 'styled-components';
-import { MainBody, MainTitle, SubTitle } from './styles';
+import { MainBody, MainTitle, SubTitle, By } from './styles';
 //local imports
 
 //styled components
@@ -16,7 +16,7 @@ const LoginLink = styled(Link)`
 
 const theme = createMuiTheme({
     palette: {
-        primary: green,
+        primary: blue,
     },
 });
 
@@ -27,6 +27,7 @@ const Home: React.FC = () => {
                 <MainBody>
                     <MainTitle>Low-Bandwidth Video Calling</MainTitle>
                     <SubTitle>Interactive Demonstration</SubTitle>
+                    <By>By Bryan Kyritz, Andrew D’angelo, and Amein Almoughrabi</By>
                     <LoginLink to="/call">
                         <Button
                             variant="contained"

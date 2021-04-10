@@ -52,6 +52,7 @@ class P2P {
         this.speakers = new Map();
         this.devices = [];
         this.peerConnections = new Object();
+        this.dataChannels = [];
         this.init();
     }
 
@@ -763,6 +764,36 @@ class P2P {
             let socketId = event.currentTarget.connectionWith;
             await this.getLocalOffer(socketId);
         };
+
+        this.peerConnections[socketId].ondatachannel = async (event) => {
+            console.log(event);
+
+            const receiveChannel = event.channel;
+            receiveChannel.onmessage = this.handleReceiveMessage;
+            receiveChannel.onopen = this.handleReceiveChannelStatusChange;
+            receiveChannel.onclose = this.handleReceiveChannelStatusChange;
+
+            this.dataChannels.push({
+                type: 'receive',
+                socketId: event.target.connectionWith,
+                channel: receiveChannel,
+            });
+
+            console.log(this.dataChannels);
+        };
+    }
+
+    handleReceiveMessage(event) {
+        const data = event.data;
+        console.log(event);
+
+        var array = new Int16Array(data);
+        console.log();
+    }
+
+    handleReceiveChannelStatusChange(status) {
+        console.log('Receiving status changed');
+        console.log(status);
     }
 
     streamIsScreenshare(streamId) {
@@ -867,6 +898,34 @@ class P2P {
 
     leaveRoom() {
         this.socket.emit('leave_room', {});
+    }
+
+    createDataChannel(dataChannelName) {
+        let peers = Object.keys(this.peerConnections);
+
+        for (let i = 0; i < peers.length; i++) {
+            let currentSocketId = peers[i];
+            console.log('creating data channel with', currentSocketId);
+            const sendChannel = this.peerConnections[currentSocketId].createDataChannel(dataChannelName);
+            this.dataChannels.push({
+                type: 'send',
+                socketId: currentSocketId,
+                channel: sendChannel,
+            });
+        }
+    }
+
+    sendMessageAll(channel, data) {
+        const channels = this.dataChannels.filter((obj) => {
+            return obj.type === 'send' && obj.channel.label === channel;
+        });
+
+        for (let i = 0; i < channels.length; i++) {
+            if (channels[i].channel.readyState === 'open') {
+                //console.log('sent');
+                channels[i].channel.send(data);
+            }
+        }
     }
 
     /**
