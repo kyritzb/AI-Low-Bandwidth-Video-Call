@@ -12,7 +12,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { P2P } from '../../P2P/P2P';
 
 import Plot from 'react-plotly.js';
-
+import Peer from '../../components/peer';
 //local imports
 import * as facemesh from '@tensorflow-models/facemesh';
 
@@ -33,6 +33,7 @@ const Home: React.FC = () => {
     const [mbps, setMBPS] = useState(0);
 
     const p2p: P2P = useSelector((state) => state.room.P2P);
+    const peers: P2P = useSelector((state) => state.room.peers);
 
     const NUM_KEYPOINTS = 468;
     const NUM_IRIS_KEYPOINTS = 5;
@@ -309,6 +310,13 @@ const Home: React.FC = () => {
                         layout={{ width: 600, height: 600, showlegend: 'false', dragmode: 'orbit' }}
                     />
                 </Grid>
+                {peers.map((peer, i) => {
+                    return (
+                        <Grid key={i} item>
+                            <Peer key={i} peer={peer} />
+                        </Grid>
+                    );
+                })}
             </Grid>
         </ThemeProvider>
     );
