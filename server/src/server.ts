@@ -18,13 +18,10 @@ app.use(cors());
 app.use(express.json());
 const server = require("http").createServer(app);
 let io;
-if (process.env.NODE_ENV === "development") {
-  io = require("socket.io")(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] },
-  });
-} else {
-  io = require("socket.io")(server);
-}
+
+io = require("socket.io")(server, {
+  cors: { origin: process.env.ORIGIN, methods: ["GET", "POST"] },
+});
 
 server.listen(PORT);
 
