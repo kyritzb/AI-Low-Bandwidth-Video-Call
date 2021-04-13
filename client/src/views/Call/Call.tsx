@@ -28,6 +28,7 @@ const Home: React.FC = () => {
     const [video] = useState(React.createRef<HTMLVideoElement>());
     const [canvas] = useState(React.createRef<HTMLCanvasElement>());
     const [points, setPoints] = useState([]);
+    const [remotePoints, setRemotePoints] = useState([]);
     const [bytes, setBytes] = useState(0);
     const [mbps, setMBPS] = useState(0);
 
@@ -39,12 +40,58 @@ const Home: React.FC = () => {
     const RED = '#FF2C35';
     const BLUE = '#157AB3';
 
+    const dataChannelName = 'faceData';
+
     const start = Date.now();
 
     let ctx;
     let bytesSent = 0;
 
     const model = facemesh.load({ maxFaces: 1 });
+
+    document.addEventListener('data_channel_message', function (event) {
+        if (event.detail.currentTarget.label == dataChannelName) {
+            recievedRemoteFace(event.detail.data);
+        }
+    });
+
+    function recievedRemoteFace(data) {
+        const typedArray = new Int16Array(data);
+        const dataArray = Array.from(typedArray);
+
+        const x = [];
+        const y = [];
+        const z = [];
+
+        for (let i = 0; i < dataArray.length; i += 3) {
+            x.push(dataArray[i]);
+            y.push(dataArray[i + 1]);
+            z.push(dataArray[i + 2]);
+        }
+
+        const arrOfPoints = [];
+
+        arrOfPoints.push({
+            x: z,
+            y: x,
+            z: y,
+            type: 'scatter3d',
+            mode: 'markers',
+            marker: {
+                color: GREEN,
+                size: 2,
+                symbol: 'circle',
+                line: {
+                    color: 'rgb(0, 0, 0)',
+                    width: 1,
+                },
+                opacity: 0.8,
+            },
+        });
+        console.log('setting remote points');
+        console.log(arrOfPoints);
+        setRemotePoints(arrOfPoints);
+    }
 
     function distance(a, b) {
         return Math.sqrt(Math.pow(a[0] - b[0], 2) + Math.pow(a[1] - b[1], 2));
@@ -178,6 +225,7 @@ const Home: React.FC = () => {
                     opacity: 0.8,
                 },
             });
+
             setPoints(arrOfPoints);
             sendFace(superFlattenedPointsData);
         }
@@ -200,14 +248,14 @@ const Home: React.FC = () => {
         setMBPS(mbps.toFixed(3));
 
         //console.log(typeof ans);
-        p2p.sendMessageAll('faceData', bufferedArray);
+        p2p.sendMessageAll(dataChannelName, bufferedArray);
     }
 
     //2 bytes each
     function arrayToInt16ArrayBuffer(array) {
         const length = array.length;
         const buffer = new ArrayBuffer(length * 2);
-        const view = new Uint16Array(buffer);
+        const view = new Int16Array(buffer);
         for (let i = 0; i < length; i++) {
             view[i] = array[i];
         }
@@ -226,8 +274,9 @@ const Home: React.FC = () => {
     }
 
     function joinDataChannel() {
-        p2p.createDataChannel('faceData');
+        p2p.createDataChannel(dataChannelName);
     }
+
     function loadp2p() {
         console.log('Loading p2p');
         p2p.joinRoom('hello');
@@ -255,7 +304,10 @@ const Home: React.FC = () => {
                     <canvas ref={canvas} width="640" height="360" />
                 </Grid>
                 <Grid item>
-                    <Plot data={points} layout={{ width: 600, height: 600, showlegend: 'false', dragmode: 'orbit' }} />
+                    <Plot
+                        data={remotePoints}
+                        layout={{ width: 600, height: 600, showlegend: 'false', dragmode: 'orbit' }}
+                    />
                 </Grid>
             </Grid>
         </ThemeProvider>

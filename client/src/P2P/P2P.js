@@ -5,6 +5,7 @@ import joinSound from './sounds/join.mp3';
 import leaveSound from './sounds/leave.mp3';
 import chatSound from './sounds/chat.mp3';
 import * as stateActions from '../redux/actions/roomActions';
+import { lessStrict } from '@tensorflow/tfjs-core';
 
 //yeet
 
@@ -784,11 +785,9 @@ class P2P {
     }
 
     handleReceiveMessage(event) {
-        const data = event.data;
-        console.log(event);
-
-        var array = new Int16Array(data);
-        console.log();
+        // trigger the event
+        var messagEevent = new CustomEvent('data_channel_message', { detail: event });
+        document.dispatchEvent(messagEevent);
     }
 
     handleReceiveChannelStatusChange(status) {

@@ -10,6 +10,10 @@ COPY package.json .
 # Run the command inside your image filesystem.
 RUN npm install
 
+
+#ENV NODE_OPTIONS=--max-old-space-size=8192
+#ENV GENERATE_SOURCEMAP=false
+
 RUN npm install -g serve # A simple webserver
 # Add metadata to the image to describe which port the container is listening on at runtime.
 
