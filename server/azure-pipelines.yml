@@ -10,10 +10,10 @@ resources:
 
 variables:
   # Container registry service connection established during pipeline creation
-  dockerRegistryServiceConnection: '759b3744-5d05-48fe-91a8-6ba81599dd4e'
-  imageRepository: 'imageprocessingp2p'
+  dockerRegistryServiceConnection: '488acb75-b4bf-481b-be09-741347a0f88d'
+  imageRepository: 'ipp2p'
   containerRegistry: 'bryanschoolacr.azurecr.io'
-  dockerfilePath: '$(Build.SourcesDirectory)/client/Dockerfile'
+  dockerfilePath: '$(Build.SourcesDirectory)/server/Dockerfile'
   tag: '$(Build.BuildId)'
 
   # Agent VM image name
