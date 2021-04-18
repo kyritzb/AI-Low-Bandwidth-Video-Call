@@ -41,7 +41,6 @@ const Home: React.FC = () => {
     const NUM_IRIS_KEYPOINTS = 5;
     const GREEN = '#32EEDB';
     const RED = '#FF2C35';
-    const BLUE = '#157AB3';
 
     const dataChannelName = 'faceData';
 
@@ -278,6 +277,44 @@ const Home: React.FC = () => {
 
         video.current.requestVideoFrameCallback(detectFaceInFrame);
     };
+
+    //have no idea what the value range is for the face mesh so have to do this. Cant find documentation on it >:(
+    //this is inefficient it hurts
+    function getScaleFactor(x, y, z, min, max) {
+        const xmin = Math.min(...x);
+        const xmax = Math.max(...x);
+        const ymin = Math.min(...y);
+        const ymax = Math.max(...y);
+        const zmin = Math.min(...z);
+        const zmax = Math.max(...z);
+
+        let validScaleFactor = false;
+        let currentScaleFactor = 1;
+
+        while (!validScaleFactor) {
+            let validMinVal = false;
+            let validMaxVal = false;
+
+            if (
+                xmin / currentScaleFactor > -127 ||
+                ymin / currentScaleFactor > -127 ||
+                zmin / currentScaleFactor > -127
+            ) {
+                validMinVal = true;
+            }
+
+            if (xmax / currentScaleFactor < 128 || ymax / currentScaleFactor > 128 || zmax / currentScaleFactor > 128) {
+                validMaxVal = true;
+            }
+
+            if (validMinVal && validMaxVal) {
+                validScaleFactor = true;
+            } else {
+                currentScaleFactor++;
+            }
+        }
+        return currentScaleFactor;
+    }
 
     function normalize3dCoordinate(x, y, z) {
         const length = Math.sqrt(x * x + y * y + z * z);
