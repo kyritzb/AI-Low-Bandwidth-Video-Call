@@ -16,6 +16,7 @@ import Peer from '../../components/peer';
 //local imports
 import * as facemesh from '@tensorflow-models/facemesh';
 
+//require('@tensorflow/tfjs-backend-cpu');
 require('@tensorflow/tfjs-backend-webgl');
 
 const theme = createMuiTheme({
@@ -31,6 +32,7 @@ const Home: React.FC = () => {
     const [remotePoints, setRemotePoints] = useState([]);
     const [bytes, setBytes] = useState(0);
     const [mbps, setMBPS] = useState(0);
+    const [fps, setFPS] = useState(0);
 
     const p2p: P2P = useSelector((state) => state.room.P2P);
     const peers: P2P = useSelector((state) => state.room.peers);
@@ -42,6 +44,9 @@ const Home: React.FC = () => {
     const BLUE = '#157AB3';
 
     const dataChannelName = 'faceData';
+
+    let lastCalledTime;
+    let curFps;
 
     const start = Date.now();
 
@@ -89,8 +94,7 @@ const Home: React.FC = () => {
                 opacity: 0.8,
             },
         });
-        console.log('setting remote points');
-        console.log(arrOfPoints);
+
         setRemotePoints(arrOfPoints);
     }
 
@@ -119,7 +123,20 @@ const Home: React.FC = () => {
         video.current.requestVideoFrameCallback(detectFaceInFrame);
     }
 
+    function calculateFps() {
+        if (!lastCalledTime) {
+            lastCalledTime = Date.now();
+            curFps = 0;
+        }
+
+        const delta = (Date.now() - lastCalledTime) / 1000;
+        lastCalledTime = Date.now();
+        curFps = parseInt(1 / delta);
+        setFPS(curFps);
+    }
     const detectFaceInFrame = async (now, metadata) => {
+        calculateFps();
+
         const predictions = await (await model).estimateFaces(video.current);
 
         ctx.drawImage(video.current, 0, 0, video.current?.videoWidth, video.current?.videoHeight);
@@ -199,10 +216,36 @@ const Home: React.FC = () => {
             const Y = [];
             const Z = [];
 
+            const scaleFactor = 5;
+
             for (let i = 0; i < flattenedPointsData.length; i++) {
-                const x = flattenedPointsData[i][0];
-                const y = flattenedPointsData[i][1];
-                const z = flattenedPointsData[i][2];
+                let x = flattenedPointsData[i][0] / scaleFactor;
+                let y = flattenedPointsData[i][1] / scaleFactor;
+                let z = flattenedPointsData[i][2] / scaleFactor;
+
+                //const normal = normalize3dCoordinate(x, y, z);
+
+                //prevent values from going over bounds
+                if (x > 128) {
+                    x = 128;
+                }
+                if (x < -127) {
+                    x = -127;
+                }
+
+                if (x > 128) {
+                    x = 128;
+                }
+                if (y < -127) {
+                    y = -127;
+                }
+
+                if (z > 128) {
+                    z = 128;
+                }
+                if (z < -127) {
+                    z = -127;
+                }
 
                 X.push(x);
                 Y.push(y);
@@ -236,9 +279,15 @@ const Home: React.FC = () => {
         video.current.requestVideoFrameCallback(detectFaceInFrame);
     };
 
+    function normalize3dCoordinate(x, y, z) {
+        const length = Math.sqrt(x * x + y * y + z * z);
+        console.log(length);
+        return [x / length, y / length, z / length];
+    }
+
     function sendFace(points) {
         //convert array to ArrayBuffer
-        const bufferedArray = arrayToInt16ArrayBuffer(points);
+        const bufferedArray = arrayToInt8ArrayBuffer(points);
 
         bytesSent += bufferedArray.byteLength;
         const mb = bytesSent / 1000000;
@@ -248,8 +297,18 @@ const Home: React.FC = () => {
         setBytes(mb.toFixed(3));
         setMBPS(mbps.toFixed(3));
 
-        //console.log(typeof ans);
         p2p.sendMessageAll(dataChannelName, bufferedArray);
+    }
+
+    //2 bytes each
+    function arrayToInt8ArrayBuffer(array) {
+        const length = array.length;
+        const buffer = new ArrayBuffer(length * 1);
+        const view = new Int16Array(buffer);
+        for (let i = 0; i < length; i++) {
+            view[i] = array[i];
+        }
+        return buffer;
     }
 
     //2 bytes each
@@ -263,23 +322,11 @@ const Home: React.FC = () => {
         return buffer;
     }
 
-    //4 bytes each
-    function arrayToFloat32ArrayBuffer(array) {
-        const length = array.length;
-        const buffer = new ArrayBuffer(length * 4);
-        const view = new Float32Array(buffer);
-        for (let i = 0; i < length; i++) {
-            view[i] = array[i];
-        }
-        return buffer;
-    }
-
     function joinDataChannel() {
         p2p.createDataChannel(dataChannelName);
     }
 
     function loadp2p() {
-        console.log('Loading p2p');
         p2p.joinRoom('hello');
     }
 
@@ -302,13 +349,11 @@ const Home: React.FC = () => {
                 </Grid>
                 <Grid item>
                     <p>with features</p>
+                    <p>fps: {fps}</p>
                     <canvas ref={canvas} width="640" height="360" />
                 </Grid>
                 <Grid item>
-                    <Plot
-                        data={remotePoints}
-                        layout={{ width: 600, height: 600, showlegend: 'false', dragmode: 'orbit' }}
-                    />
+                    <Plot data={points} layout={{ width: 600, height: 600, showlegend: 'false', dragmode: 'orbit' }} />
                 </Grid>
                 {peers.map((peer, i) => {
                     return (

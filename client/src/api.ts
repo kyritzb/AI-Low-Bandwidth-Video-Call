@@ -7,7 +7,7 @@ export const serverUrl = process.env.REACT_APP_SERVER + '/p2p' || 'http://localh
 export const serverIO = process.env.REACT_APP_SERVER || 'http://localhost:8000';
 
 console.log('-------------------------');
-console.log('WealthEnv Client started!');
+console.log('Image Processing Client started!');
 console.log('-------------------------');
 console.log(process.env);
 console.log('-------------------------');
