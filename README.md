@@ -1,7 +1,7 @@
 # Image Processing
 ## _AI-powered Low-Bandwidth video calling_
 
-Video chat powered by artificial intelligence to make video chat over 30 times more bandwidth efficient. 
+Video chat powered by artificial intelligence to make video chat over 30 times more bandwidth-efficient. 
 
 [Try the Demo](https://cpe462imageprocessing.azurewebsites.net)
 
