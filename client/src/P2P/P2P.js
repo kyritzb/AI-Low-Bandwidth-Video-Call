@@ -1,6 +1,7 @@
 import openSocket from 'socket.io-client';
 import Peer from './models/Peer';
 import Stream from './models/Stream';
+import DataChannel from './models/DataChannel';
 import joinSound from './sounds/join.mp3';
 import leaveSound from './sounds/leave.mp3';
 import chatSound from './sounds/chat.mp3';
@@ -769,16 +770,17 @@ class P2P {
         this.peerConnections[socketId].ondatachannel = async (event) => {
             console.log(event);
 
+            const socketId = event.currentTarget.connectionWith;
+
             const receiveChannel = event.channel;
             receiveChannel.onmessage = this.handleReceiveMessage;
             receiveChannel.onopen = this.handleReceiveChannelStatusChange;
             receiveChannel.onclose = this.handleReceiveChannelStatusChange;
+            receiveChannel.socketId = socketId;
 
-            this.dataChannels.push({
-                type: 'receive',
-                socketId: event.target.connectionWith,
-                channel: receiveChannel,
-            });
+            let newDataChannel = new DataChannel('receive', event.target.connectionWith, receiveChannel);
+
+            this.dataChannels.push(newDataChannel);
 
             console.log(this.dataChannels);
         };
@@ -786,8 +788,8 @@ class P2P {
 
     handleReceiveMessage(event) {
         // trigger the event
-        var messagEevent = new CustomEvent('data_channel_message', { detail: event });
-        document.dispatchEvent(messagEevent);
+        var messageEvent = new CustomEvent('data_channel_message', { detail: event });
+        document.dispatchEvent(messageEvent);
     }
 
     handleReceiveChannelStatusChange(status) {
@@ -906,11 +908,10 @@ class P2P {
             let currentSocketId = peers[i];
             console.log('creating data channel with', currentSocketId);
             const sendChannel = this.peerConnections[currentSocketId].createDataChannel(dataChannelName);
-            this.dataChannels.push({
-                type: 'send',
-                socketId: currentSocketId,
-                channel: sendChannel,
-            });
+
+            let newDataChannel = new DataChannel('send', currentSocketId, sendChannel);
+
+            this.dataChannels.push(newDataChannel);
         }
     }
 

@@ -31,3 +31,9 @@ export const By = styled.h6`
     color: grey;
     margin-bottom: 5%;
 `;
+
+export const Text = styled.p`
+    text-align: center;
+    font-size: 1em;
+    color: grey;
+`;

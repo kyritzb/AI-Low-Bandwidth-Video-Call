@@ -56,12 +56,14 @@ const Home: React.FC = () => {
 
     document.addEventListener('data_channel_message', function (event) {
         if (event.detail.currentTarget.label == dataChannelName) {
-            recievedRemoteFace(event.detail.data);
+            const data = event.detail.data;
+            const socketId = event.detail.currentTarget.socketId;
+            recievedRemoteFace(data, socketId);
         }
     });
 
-    function recievedRemoteFace(data) {
-        const typedArray = new Int16Array(data);
+    function recievedRemoteFace(data, socketId) {
+        const typedArray = new Int8Array(data);
         const dataArray = Array.from(typedArray);
 
         const x = [];
@@ -74,9 +76,9 @@ const Home: React.FC = () => {
             z.push(dataArray[i + 2]);
         }
 
-        const arrOfPoints = [];
+        const arrOfPeplePoints = remotePoints;
 
-        arrOfPoints.push({
+        const points = {
             x: z,
             y: x,
             z: y,
@@ -92,9 +94,27 @@ const Home: React.FC = () => {
                 },
                 opacity: 0.8,
             },
-        });
+        };
 
-        setRemotePoints(arrOfPoints);
+        const obj = {
+            socketId: socketId,
+            points: points,
+        };
+
+        let index = -1;
+        for (let i = 0; i < arrOfPeplePoints.length; i++) {
+            if (arrOfPeplePoints[i].socketId === socketId) {
+                arrOfPeplePoints[i].points = points;
+                index = i;
+                break;
+            }
+        }
+
+        if (index == -1) {
+            arrOfPeplePoints.push(obj);
+        }
+
+        setRemotePoints(arrOfPeplePoints);
     }
 
     function distance(a, b) {
@@ -102,7 +122,13 @@ const Home: React.FC = () => {
     }
 
     async function getMedia() {
-        const webcamStream = await p2p.getMedia(true, true);
+        const videoSettings = {
+            width: { max: 640 },
+            height: { max: 480 },
+            frameRate: { max: 10 },
+        };
+
+        const webcamStream = await p2p.getMedia(videoSettings, true);
 
         video.current.srcObject = webcamStream;
     }
@@ -278,50 +304,6 @@ const Home: React.FC = () => {
         video.current.requestVideoFrameCallback(detectFaceInFrame);
     };
 
-    //have no idea what the value range is for the face mesh so have to do this. Cant find documentation on it >:(
-    //this is inefficient it hurts
-    function getScaleFactor(x, y, z, min, max) {
-        const xmin = Math.min(...x);
-        const xmax = Math.max(...x);
-        const ymin = Math.min(...y);
-        const ymax = Math.max(...y);
-        const zmin = Math.min(...z);
-        const zmax = Math.max(...z);
-
-        let validScaleFactor = false;
-        let currentScaleFactor = 1;
-
-        while (!validScaleFactor) {
-            let validMinVal = false;
-            let validMaxVal = false;
-
-            if (
-                xmin / currentScaleFactor > -127 ||
-                ymin / currentScaleFactor > -127 ||
-                zmin / currentScaleFactor > -127
-            ) {
-                validMinVal = true;
-            }
-
-            if (xmax / currentScaleFactor < 128 || ymax / currentScaleFactor > 128 || zmax / currentScaleFactor > 128) {
-                validMaxVal = true;
-            }
-
-            if (validMinVal && validMaxVal) {
-                validScaleFactor = true;
-            } else {
-                currentScaleFactor++;
-            }
-        }
-        return currentScaleFactor;
-    }
-
-    function normalize3dCoordinate(x, y, z) {
-        const length = Math.sqrt(x * x + y * y + z * z);
-        console.log(length);
-        return [x / length, y / length, z / length];
-    }
-
     function sendFace(points) {
         //convert array to ArrayBuffer
         const bufferedArray = arrayToInt8ArrayBuffer(points);
@@ -360,10 +342,12 @@ const Home: React.FC = () => {
     }
 
     function joinDataChannel() {
+        console.log('created a data channel');
         p2p.createDataChannel(dataChannelName);
     }
 
     function loadp2p() {
+        console.log('joining room');
         p2p.joinRoom('hello');
     }
 
@@ -382,16 +366,34 @@ const Home: React.FC = () => {
             <Grid container spacing={1}>
                 <Grid item>
                     <p>Live Video</p>
-                    <video ref={video} autoPlay={true} playsInline muted onPlay={detectFace} width="640" height="360" />
+                    <video ref={video} autoPlay={true} playsInline muted onPlay={detectFace} width="320" height="180" />
                 </Grid>
                 <Grid item>
                     <p>with features</p>
                     <p>fps: {fps}</p>
-                    <canvas ref={canvas} width="640" height="360" />
+                    <canvas ref={canvas} width="320" height="180" />
                 </Grid>
                 <Grid item>
-                    <Plot data={points} layout={{ width: 600, height: 600, showlegend: 'false', dragmode: 'orbit' }} />
+                    <Plot data={points} layout={{ width: 300, height: 300, showlegend: 'false', dragmode: 'orbit' }} />
                 </Grid>
+            </Grid>
+
+            <Grid container spacing={1}>
+                {remotePoints.map((personObj, i) => {
+                    console.log('loading :', personObj);
+                    return (
+                        <Grid item key={i}>
+                            <p>{personObj.socketId}</p>
+                            <Plot
+                                data={personObj.points}
+                                layout={{ width: 300, height: 300, showlegend: 'false', dragmode: 'orbit' }}
+                            />
+                        </Grid>
+                    );
+                })}
+            </Grid>
+
+            <Grid container spacing={1}>
                 {peers.map((peer, i) => {
                     return (
                         <Grid key={i} item>
